@@ -65,7 +65,8 @@ internal class Program
 
     private IConfiguration BuildConfiguration()
     {
-        IConfiguration configuration = new ConfigurationBuilder().AddJsonFile("appsettings.jsonc", optional: false, reloadOnChange: true)
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.jsonc", optional: false, reloadOnChange: true)
             .Build();
         return configuration;
     }

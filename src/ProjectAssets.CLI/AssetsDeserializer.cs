@@ -5,9 +5,12 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public class AssetsDeserializer : IDeserializeAssets
 {
-    public Assets? Deserialize(string assetFilePath)
+    public async Task<Assets?> DeserializeAsync(string assetFilePath, CancellationToken cancellationToken)
     {
         JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        return JsonSerializer.Deserialize<Assets>(assetFilePath);
+        using (Stream inputStream = File.OpenRead(assetFilePath))
+        {
+            return await JsonSerializer.DeserializeAsync<Assets>(inputStream, options, cancellationToken);
+        }
     }
 }

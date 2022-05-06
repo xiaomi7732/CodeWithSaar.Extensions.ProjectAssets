@@ -4,5 +4,5 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public interface IGenerateMermaid
 {
-    void Generate(Stream outputStream, Assets assets);
+    Task GenerateAsync(Stream outputStream, Assets assets, CancellationToken cancellationToken);
 }

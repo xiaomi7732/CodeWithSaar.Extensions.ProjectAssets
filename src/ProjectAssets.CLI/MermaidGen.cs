@@ -5,16 +5,16 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public class MermaidGen : IGenerateMermaid
 {
-    public void Generate(Stream outputStream, Assets assets)
+    public async Task GenerateAsync(Stream outputStream, Assets assets, CancellationToken cancellationToken)
     {
-        using(StreamWriter writer = new StreamWriter(outputStream, Encoding.UTF8, bufferSize: -1, leaveOpen: true))
+        using (StreamWriter writer = new StreamWriter(outputStream, Encoding.UTF8, bufferSize: -1, leaveOpen: true))
         {
-            
+            await GenerateAsync(writer, assets, cancellationToken);
         }
     }
 
-    private void Generate(StreamWriter writer, Assets assets)
+    private Task GenerateAsync(StreamWriter writer, Assets assets, CancellationToken cancellationToken)
     {
-
+        throw new NotImplementedException();
     }
 }

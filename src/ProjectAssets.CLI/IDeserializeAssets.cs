@@ -4,5 +4,5 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public interface IDeserializeAssets
 {
-    Assets? Deserialize(string assetFilePath);
+    Task<Assets?> DeserializeAsync(string assetFilePath, CancellationToken cancellationToken);
 }

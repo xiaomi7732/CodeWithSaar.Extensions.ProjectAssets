@@ -1,18 +1,44 @@
 using CodeWithSaar.ProjectAssets.Core;
+using CodeWithSaar.ProjectAssets.Models;
+using Microsoft.Extensions.Logging;
 
 namespace CodeWithSaar.ProjectAssets.CLI;
 
 public class Engine
 {
-    private readonly IFileExistCheck _fileExistCheck;
+    private readonly CmdOptions _cmdOptions;
+    private readonly ILocateAssetJson _assetJsonLocator;
+    private readonly IDeserializeAssets _assetsDeserializer;
+    private readonly IGenerateMermaid _mermaidGen;
+    private readonly ILogger<Engine> _logger;
 
-    public Engine(IFileExistCheck fileExistCheck)
+    public Engine(
+        CmdOptions cmdOptions,
+        ILocateAssetJson assetJsonLocator,
+        IDeserializeAssets assetsDeserializer,
+        IGenerateMermaid mermaidGen,
+        ILogger<Engine> logger)
     {
-        _fileExistCheck = fileExistCheck ?? throw new ArgumentNullException(nameof(fileExistCheck));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        _cmdOptions = cmdOptions ?? throw new ArgumentNullException(nameof(cmdOptions));
+        _assetJsonLocator = assetJsonLocator ?? throw new ArgumentNullException(nameof(assetJsonLocator));
+        _assetsDeserializer = assetsDeserializer ?? throw new ArgumentNullException(nameof(assetsDeserializer));
+        _mermaidGen = mermaidGen ?? throw new ArgumentNullException(nameof(mermaidGen));
     }
 
-    public Task RunAsync(CancellationToken cancellationToken)
+    public async Task RunAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        string assetJsonFilePath = _assetJsonLocator.LocateFile(_cmdOptions.AssetFilePath);
+        Assets? assets = await _assetsDeserializer.DeserializeAsync(assetJsonFilePath, cancellationToken);
+        if (assets is null)
+        {
+            throw new InvalidOperationException("Deserialized assets as null. This should not happen.");
+        }
+
+        using (Stream outputStream = File.OpenWrite(_cmdOptions.OutputFilePath))
+        {
+            await _mermaidGen.GenerateAsync(outputStream, assets, cancellationToken);
+        }
     }
 }
