@@ -36,9 +36,10 @@ public class Engine
             throw new InvalidOperationException("Deserialized assets as null. This should not happen.");
         }
 
-        using (Stream outputStream = File.OpenWrite(_cmdOptions.OutputFilePath))
+        using (Stream outputStream = File.Open(_cmdOptions.OutputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
         {
             await _mermaidGen.GenerateAsync(outputStream, assets, cancellationToken);
         }
+        _logger.LogInformation("Finish generating mermaid file: {filePath}", Path.GetFullPath(_cmdOptions.OutputFilePath));
     }
 }
