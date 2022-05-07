@@ -6,17 +6,12 @@ internal class KnownEdgeManager : IManageKnownEdge
 
     public KnownEdgeManager()
     {
-        _knownEdgeHolder = new HashSet<string>(StringComparer.Ordinal);
+        _knownEdgeHolder = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public bool IsKnownOrAdd(string pointA, string pointB)
     {
-        List<string> list = new List<string>(2){
-            pointA.ToLower(),
-            pointB.ToLower(),
-        };
-        list.Sort();
-        string key = string.Concat(list);
+        string key = pointA + "##4#3#9#" + pointB;
         if (_knownEdgeHolder.Contains(key))
         {
             // It is known
