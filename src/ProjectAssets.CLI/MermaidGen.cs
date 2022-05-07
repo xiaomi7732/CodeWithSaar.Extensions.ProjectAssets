@@ -158,26 +158,14 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
 
     private async Task GenerateFull(StreamWriter writer, Assets assets, CancellationToken cancellationToken)
     {
-        foreach (KeyValuePair<string, IDictionary<string, AssetPackageInfo>> framework in assets.Targets!)
+        foreach (string frameworkName in assets.TryGetTargetFrameworks())
         {
-            string fxName = framework.Key;
-            foreach (KeyValuePair<string, AssetPackageInfo> package in framework.Value)
+            if (assets.ProjectFileDependencyGroups is not null && assets.ProjectFileDependencyGroups.ContainsKey(frameworkName))
             {
-                string packageName = GetPackageName(package.Key);
-                if (assets.IsHeaderProject(packageName, fxName))
+                foreach (string projectNameWithVersionInfo in assets.ProjectFileDependencyGroups[frameworkName])
                 {
-                    await writer.WriteLineAsync(GetState("🪟" + fxName, GetLibraryEmoji(assets.GetLibraryType(package.Key)) + package.Key));
-                }
-                if (package.Value.Dependencies is null)
-                {
-                    continue;
-                }
-                foreach (KeyValuePair<string, string> dependency in package.Value.Dependencies)
-                {
-                    string from = GetLibraryEmoji(assets.GetLibraryType(package.Key)) + package.Key;
-                    string toLibrarySignature = $"{dependency.Key}/{dependency.Value}";
-                    string to = GetLibraryEmoji(assets.GetLibraryType(toLibrarySignature)) + toLibrarySignature;
-                    await writer.WriteLineAsync(GetState(from, to));
+                    string projectName = projectNameWithVersionInfo.Split(" ")[0];
+                    await GenerateForTargetProject(writer, assets, projectName, SearchDirection.Up | SearchDirection.Down, cancellationToken);
                 }
             }
         }
