@@ -1,4 +1,4 @@
-namespace CodeWithSaar.ProjectAssets.Core;
+namespace CodeWithSaar.ProjectAssets.CLI;
 
 public interface IFileExistCheck
 {

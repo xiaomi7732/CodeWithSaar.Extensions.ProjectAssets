@@ -1,4 +1,5 @@
 using System.Text;
+using CodeWithSaar.ProjectAssets.Core;
 using CodeWithSaar.ProjectAssets.Models;
 using Microsoft.Extensions.Logging;
 
@@ -7,10 +8,15 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 public class MermaidGen : IGenerateMermaid
 {
     private readonly ILogger<MermaidGen> _logger;
-
+    private readonly IDictionary<string, string> _typeEmojis;
     public MermaidGen(ILogger<MermaidGen> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _typeEmojis = new Dictionary<string, string>()
+        {
+            ["package"] = "📦",
+            ["project"] = "🏗️",
+        };
     }
 
     public async Task GenerateAsync(Stream outputStream, Assets assets, CancellationToken cancellationToken)
@@ -38,10 +44,10 @@ public class MermaidGen : IGenerateMermaid
             string fxName = framework.Key;
             foreach (KeyValuePair<string, AssetPackageInfo> package in framework.Value)
             {
-                string packageName = package.Key.Split("/", StringSplitOptions.RemoveEmptyEntries)[0];
+                string packageName = GetPackageName(package.Key);
                 if (IsHeader(packageName, fxName, assets))
                 {
-                    await writer.WriteLineAsync(GetState("📦" + fxName, package.Key));
+                    await writer.WriteLineAsync(GetState("🪟" + fxName, GetLibraryEmoji(assets.GetLibraryType(package.Key)) + package.Key));
                 }
                 if (package.Value.Dependencies is null)
                 {
@@ -49,12 +55,29 @@ public class MermaidGen : IGenerateMermaid
                 }
                 foreach (KeyValuePair<string, string> dependency in package.Value.Dependencies)
                 {
-                    await writer.WriteLineAsync(GetState(package.Key, $"{dependency.Key}/{dependency.Value}"));
+                    string from = GetLibraryEmoji(assets.GetLibraryType(package.Key)) + package.Key;
+                    string toLibrarySignature = $"{dependency.Key}/{dependency.Value}";
+                    string to = GetLibraryEmoji(assets.GetLibraryType(toLibrarySignature)) + toLibrarySignature;
+                    await writer.WriteLineAsync(GetState(from, to));
                 }
             }
         }
 
         _logger.LogTrace("Finish generating mermaid.");
+    }
+
+    private string GetPackageName(string packageSignature)
+    {
+        return packageSignature.Split("/", StringSplitOptions.RemoveEmptyEntries)[0];
+    }
+
+    private string GetLibraryEmoji(string type)
+    {
+        if (_typeEmojis.ContainsKey(type))
+        {
+            return _typeEmojis[type];
+        }
+        return string.Empty;
     }
 
     private bool IsHeader(string packageName, string framework, Assets assets)

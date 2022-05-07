@@ -1,4 +1,4 @@
-namespace CodeWithSaar.ProjectAssets.Core;
+namespace CodeWithSaar.ProjectAssets.CLI;
 
 internal class DefaultFileExistCheck : IFileExistCheck
 {
