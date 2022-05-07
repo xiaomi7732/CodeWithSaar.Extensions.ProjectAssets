@@ -52,13 +52,13 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
         }
         else
         {
-            await GenerateForTargetProject(writer, assets, options.TargetProject, cancellationToken);
+            await GenerateForTargetProject(writer, assets, options.TargetProject, options.SearchDirection, cancellationToken);
         }
 
         _logger.LogTrace("Finish generating mermaid.");
     }
 
-    private async Task GenerateForTargetProject(StreamWriter writer, Assets assets, string targetLibrary, CancellationToken cancellationToken)
+    private async Task GenerateForTargetProject(StreamWriter writer, Assets assets, string targetLibrary, SearchDirection searchDirection, CancellationToken cancellationToken)
     {
         foreach (string frameworkName in assets.TryGetTargetFrameworks())
         {
@@ -71,10 +71,16 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
             }
 
             // Get all parents.
-            await GenerateParentProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
+            if (searchDirection.HasFlag(SearchDirection.Up))
+            {
+                await GenerateParentProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
+            }
 
             // Getting dependencies.
-            await GenerateChildProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
+            if (searchDirection.HasFlag(SearchDirection.Down))
+            {
+                await GenerateChildProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
+            }
         }
     }
 

@@ -36,8 +36,10 @@ public class Engine
             throw new InvalidOperationException("Deserialized assets as null. This should not happen.");
         }
 
-        MermaidGenOptions options = new MermaidGenOptions(){
+        MermaidGenOptions options = new MermaidGenOptions()
+        {
             TargetProject = _cmdOptions.TargetPackage,
+            SearchDirection = _cmdOptions.SearchDirection,
         };
 
         using (Stream outputStream = File.Open(_cmdOptions.OutputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
