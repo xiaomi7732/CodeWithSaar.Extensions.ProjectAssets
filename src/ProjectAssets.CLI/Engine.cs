@@ -9,14 +9,14 @@ public class Engine
     private readonly CmdOptions _cmdOptions;
     private readonly ILocateAssetJson _assetJsonLocator;
     private readonly IDeserializeAssets _assetsDeserializer;
-    private readonly IGenerateMermaid _mermaidGen;
+    private readonly IGenerateVisual<MermaidGenOptions> _mermaidGen;
     private readonly ILogger<Engine> _logger;
 
     public Engine(
         CmdOptions cmdOptions,
         ILocateAssetJson assetJsonLocator,
         IDeserializeAssets assetsDeserializer,
-        IGenerateMermaid mermaidGen,
+        IGenerateVisual<MermaidGenOptions> mermaidGen,
         ILogger<Engine> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -36,9 +36,13 @@ public class Engine
             throw new InvalidOperationException("Deserialized assets as null. This should not happen.");
         }
 
+        MermaidGenOptions options = new MermaidGenOptions(){
+            TargetProject = _cmdOptions.TargetPackage,
+        };
+
         using (Stream outputStream = File.Open(_cmdOptions.OutputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
         {
-            await _mermaidGen.GenerateAsync(outputStream, assets, cancellationToken);
+            await _mermaidGen.GenerateAsync(outputStream, assets, options, cancellationToken);
         }
         _logger.LogInformation("Finish generating mermaid file: {filePath}", Path.GetFullPath(_cmdOptions.OutputFilePath));
     }

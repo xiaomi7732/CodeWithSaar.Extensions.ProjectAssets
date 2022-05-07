@@ -9,4 +9,7 @@ public class CmdOptions
 
     [Option('o', "output", Required = false, HelpText = "Output file path", Default = "output.mmd")]
     public string OutputFilePath { get; set; } = "output.mmd";
+
+    [Option('t', "target-package", Required = false, HelpText = "Only output target package", Default = null)]
+    public string? TargetPackage { get; set; }
 }

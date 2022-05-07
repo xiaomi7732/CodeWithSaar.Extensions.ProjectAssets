@@ -57,7 +57,7 @@ internal class Program
         services.TryAddTransient<IFileExistCheck, DefaultFileExistCheck>();
         services.TryAddTransient<ILocateAssetJson, TargetFileLocator>();
         services.TryAddTransient<IDeserializeAssets, AssetsDeserializer>();
-        services.TryAddTransient<IGenerateMermaid, MermaidGen>();
+        services.TryAddTransient<IGenerateVisual<MermaidGenOptions>, MermaidGen>();
 
         services.TryAddTransient<Engine>();
         return services;

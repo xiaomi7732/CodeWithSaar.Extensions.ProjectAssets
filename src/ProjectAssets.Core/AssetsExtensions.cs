@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using CodeWithSaar.ProjectAssets.Models;
@@ -37,5 +38,72 @@ public static class AssetsExtensions
             return string.Empty;
         }
         return type!;
+    }
+
+    public static (string packageSignature, AssetPackageInfo libraryInfo) TryFindTargetLibrary(this Assets assets, string frameworkName, string packageName)
+    {
+        IDictionary<string, AssetPackageInfo> libraryInfo = FindTargetLibraryInfo(assets, frameworkName, packageName);
+        KeyValuePair<string, AssetPackageInfo> hit = libraryInfo.FirstOrDefault(pair => pair.Key.StartsWith(packageName + '/', StringComparison.OrdinalIgnoreCase));
+        return (hit.Key, hit.Value);
+    }
+
+    public static AssetPackageInfo? TryFindTargetLibrary(this Assets assets, string frameworkName, string packageName, string packageVersion)
+    {
+        IDictionary<string, AssetPackageInfo> packageInfos = FindTargetLibraryInfo(assets, frameworkName, packageName);
+
+        string packageSignature = packageName + "/" + packageVersion;
+        if (packageInfos.ContainsKey(packageSignature))
+        {
+            return packageInfos[packageSignature];
+        }
+        return null;
+    }
+
+    public static IEnumerable<string> TryGetTargetFrameworks(this Assets assets)
+    {
+        if (assets is null)
+        {
+            throw new ArgumentNullException(nameof(assets));
+        }
+
+        if (assets.Targets is null)
+        {
+            throw new InvalidOperationException("The given assets doesn't have any targets.");
+        }
+
+        foreach (string frameworkName in assets.Targets.Keys)
+        {
+            yield return frameworkName;
+        }
+    }
+
+    private static IDictionary<string, AssetPackageInfo> FindTargetLibraryInfo(Assets assets, string frameworkName, string packageName)
+    {
+        if (assets is null)
+        {
+            throw new ArgumentNullException(nameof(assets));
+        }
+
+        if (assets.Targets is null)
+        {
+            throw new InvalidOperationException("No libraries specified in assets.");
+        }
+
+        if (string.IsNullOrEmpty(frameworkName))
+        {
+            throw new ArgumentException($"'{nameof(frameworkName)}' cannot be null or empty.", nameof(frameworkName));
+        }
+
+        if (string.IsNullOrEmpty(packageName))
+        {
+            throw new ArgumentException($"'{nameof(packageName)}' cannot be null or empty.", nameof(packageName));
+        }
+
+        if (!assets.Targets.ContainsKey(frameworkName))
+        {
+            throw new InvalidOperationException($"Framework name can't be found. {frameworkName}");
+        }
+
+        return assets.Targets[frameworkName];
     }
 }
