@@ -7,11 +7,15 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public class MermaidGen : IGenerateVisual<MermaidGenOptions>
 {
+    private readonly IManageKnownEdge _edgeManager;
     private readonly ILogger<MermaidGen> _logger;
     private readonly IDictionary<string, string> _typeEmojis;
-    public MermaidGen(ILogger<MermaidGen> logger)
+    public MermaidGen(
+        IManageKnownEdge edgeManager,
+        ILogger<MermaidGen> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _edgeManager = edgeManager ?? throw new ArgumentNullException(nameof(edgeManager));
         _typeEmojis = new Dictionary<string, string>()
         {
             ["package"] = "📦",
@@ -66,24 +70,49 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
                 return;
             }
 
-            // TODO: Get all parents.
+            // Get all parents.
+            await GenerateParentProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
 
             // Getting dependencies.
-            await GenerateChildProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, new HashSet<string>(), cancellationToken);
+            await GenerateChildProjectsAsync(writer, assets, frameworkName, packageSignature, targetLibraryInfo, cancellationToken);
         }
     }
 
-    private async Task GenerateChildProjectsAsync(StreamWriter writer, Assets assets, string frameworkName, string currentPackageSignature, AssetPackageInfo current, HashSet<string> knownLeaves, CancellationToken cancellationToken)
+    private async Task GenerateParentProjectsAsync(StreamWriter writer, Assets assets, string frameworkName, string currentPackageSignature, AssetPackageInfo current, CancellationToken cancellationToken)
     {
-        string from = GetLibraryEmoji(assets.GetLibraryType(currentPackageSignature)) + currentPackageSignature;
+        if (assets.Targets is null)
+        {
+            throw new InvalidOperationException("Give assets has no target.");
+        }
+
+        string to = currentPackageSignature;
+
+        IEnumerable<KeyValuePair<string, AssetPackageInfo>> parents = assets.Targets[frameworkName].Where(item =>
+            item.Value.Dependencies is not null &&
+            item.Value.Dependencies.Any(p => string.Equals($"{p.Key}/{p.Value}", currentPackageSignature, StringComparison.OrdinalIgnoreCase)));
+        if (parents is not null && parents.Any())
+        {
+            foreach (KeyValuePair<string, AssetPackageInfo> parent in parents)
+            {
+                await GenerateParentProjectsAsync(writer, assets, frameworkName, parent.Key, parent.Value, cancellationToken);
+                await RenderLineAsync(parent.Key, to, assets, writer, cancellationToken);
+            }
+        }
+        else
+        {
+            if (assets.IsHeaderProject(GetPackageName(to), frameworkName))
+            {
+                await RenderLineAsync(frameworkName, to, assets, writer, cancellationToken);
+            }
+        }
+    }
+
+    private async Task GenerateChildProjectsAsync(StreamWriter writer, Assets assets, string frameworkName, string currentPackageSignature, AssetPackageInfo current, CancellationToken cancellationToken)
+    {
+        string from = currentPackageSignature;
         if (current.Dependencies is null || !current.Dependencies.Any())
         {
-            if (!knownLeaves.Contains(from))
-            {
-                string to = "[*]";
-                await writer.WriteLineAsync(GetState(from, to));
-                knownLeaves.Add(from);
-            }
+            await RenderLineAsync(from, string.Empty, assets, writer, cancellationToken);
             return; // End recursion
         }
         foreach (KeyValuePair<string, string> dependency in current.Dependencies)
@@ -92,10 +121,32 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
             if (child is not null)
             {
                 string childSignature = $"{dependency.Key}/{dependency.Value}";
-                string to = GetLibraryEmoji(assets.GetLibraryType(childSignature)) + childSignature;
-                await writer.WriteLineAsync(GetState(from, to));
-                await GenerateChildProjectsAsync(writer, assets, frameworkName, childSignature, child, knownLeaves, cancellationToken);
+                await RenderLineAsync(from, childSignature, assets, writer, cancellationToken);
+                await GenerateChildProjectsAsync(writer, assets, frameworkName, childSignature, child, cancellationToken);
             }
+        }
+    }
+
+    private async Task RenderLineAsync(string fromPackageSignature, string toPackageSignature, Assets assets, StreamWriter writer, CancellationToken cancellationToken)
+    {
+        fromPackageSignature = NormalizePackageSignatureForRendering(fromPackageSignature, assets);
+        toPackageSignature = NormalizePackageSignatureForRendering(toPackageSignature, assets);
+
+        if (!_edgeManager.IsKnownOrAdd(fromPackageSignature, toPackageSignature))
+        {
+            await writer.WriteLineAsync(GetState(fromPackageSignature, toPackageSignature));
+        }
+    }
+
+    private string NormalizePackageSignatureForRendering(string packageSignature, Assets assets)
+    {
+        if (string.IsNullOrEmpty(packageSignature))
+        {
+            return "[*]";
+        }
+        else
+        {
+            return GetLibraryEmoji(assets.GetLibraryType(packageSignature)) + packageSignature;
         }
     }
 
@@ -107,7 +158,7 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
             foreach (KeyValuePair<string, AssetPackageInfo> package in framework.Value)
             {
                 string packageName = GetPackageName(package.Key);
-                if (IsHeader(packageName, fxName, assets))
+                if (assets.IsHeaderProject(packageName, fxName))
                 {
                     await writer.WriteLineAsync(GetState("🪟" + fxName, GetLibraryEmoji(assets.GetLibraryType(package.Key)) + package.Key));
                 }
@@ -140,20 +191,7 @@ public class MermaidGen : IGenerateVisual<MermaidGenOptions>
         return string.Empty;
     }
 
-    private bool IsHeader(string packageName, string framework, Assets assets)
-    {
-        if (assets.ProjectFileDependencyGroups is null)
-        {
-            _logger.LogWarning("No project file dependency groups.");
-            return false;
-        }
-        if (assets.ProjectFileDependencyGroups.ContainsKey(framework))
-        {
-            IEnumerable<string> headerList = assets.ProjectFileDependencyGroups[framework];
-            return headerList.Any(line => line.StartsWith(packageName, StringComparison.OrdinalIgnoreCase));
-        }
-        return false;
-    }
+
 
     private string GetState(string from, string to)
     {

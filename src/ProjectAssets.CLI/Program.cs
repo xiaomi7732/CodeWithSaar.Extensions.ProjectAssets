@@ -58,7 +58,8 @@ internal class Program
         services.TryAddTransient<ILocateAssetJson, TargetFileLocator>();
         services.TryAddTransient<IDeserializeAssets, AssetsDeserializer>();
         services.TryAddTransient<IGenerateVisual<MermaidGenOptions>, MermaidGen>();
-
+        services.TryAddTransient<IManageKnownEdge, KnownEdgeManager>();
+        
         services.TryAddTransient<Engine>();
         return services;
     }

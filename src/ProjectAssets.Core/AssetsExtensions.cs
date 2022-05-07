@@ -106,4 +106,18 @@ public static class AssetsExtensions
 
         return assets.Targets[frameworkName];
     }
+
+    public static bool IsHeaderProject(this Assets assets, string packageName, string framework)
+    {
+        if (assets.ProjectFileDependencyGroups is null)
+        {
+            return false;
+        }
+        if (assets.ProjectFileDependencyGroups.ContainsKey(framework))
+        {
+            IEnumerable<string> headerList = assets.ProjectFileDependencyGroups[framework];
+            return headerList.Any(line => line.StartsWith(packageName, StringComparison.OrdinalIgnoreCase));
+        }
+        return false;
+    }
 }
