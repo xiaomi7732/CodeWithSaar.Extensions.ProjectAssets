@@ -1,5 +1,4 @@
-﻿using CodeWithSaar.ProjectAssets.Core;
-using CommandLine;
+﻿using CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -55,11 +54,15 @@ internal class Program
 
         services.TryAddSingleton(cmdOptions);
         services.TryAddTransient<IFileExistCheck, DefaultFileExistCheck>();
+        services.TryAddTransient<IDirectoryExistCheck, DefaultDirectoryExistCheck>();
+
         services.TryAddTransient<ILocateAssetJson, TargetFileLocator>();
         services.TryAddTransient<IDeserializeAssets, AssetsDeserializer>();
         services.TryAddTransient<IGenerateVisual<MermaidGenOptions>, MermaidGen>();
         services.TryAddTransient<IManageKnownEdge, KnownEdgeManager>();
-        
+
+        services.TryAddAssetJsonFileLocators();
+
         services.TryAddTransient<Engine>();
         return services;
     }

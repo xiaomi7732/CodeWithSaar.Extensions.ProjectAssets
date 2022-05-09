@@ -4,7 +4,7 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 
 public class CmdOptions
 {
-    [Option('i', "input", Required = true, HelpText = "Path to project.assets.json.")]
+    [Option('i', "input", Required = true, HelpText = "Path to project.assets.json. Support full path for the path to the obj directory. For example: ./obj/")]
     public string AssetFilePath { get; set; } = string.Empty;
 
     [Option('o', "output", Required = false, HelpText = "Output file path", Default = "output.mmd")]

@@ -1,4 +1,3 @@
-using CodeWithSaar.ProjectAssets.Core;
 using Microsoft.Extensions.Logging;
 
 namespace CodeWithSaar.ProjectAssets.CLI
@@ -18,20 +17,23 @@ namespace CodeWithSaar.ProjectAssets.CLI
             _fileExist = fileExist ?? throw new ArgumentNullException(nameof(fileExist));
         }
 
-        public string LocateFile(string assetFilePathHint)
+        public bool TryLocateFile(string assetFilePathHint, out string locatedFilePath)
         {
-            if (assetFilePathHint is null)
+            _logger.LogDebug("Searching for file: {fileHint}", assetFilePathHint);
+            
+            locatedFilePath = string.Empty;
+            if(string.IsNullOrEmpty(assetFilePathHint))
             {
-                throw new ArgumentNullException(nameof(assetFilePathHint));
+                return false;
             }
 
             if (_fileExist.Check(assetFilePathHint))
             {
                 _logger.LogDebug("Given asset file exists at {filePath}", assetFilePathHint);
-                return assetFilePathHint;
+                locatedFilePath = assetFilePathHint;
+                return true;
             }
-
-            throw new FileNotFoundException("Asset File not found. File path hint: {filePath}", assetFilePathHint);
+            return false;
         }
     }
 }

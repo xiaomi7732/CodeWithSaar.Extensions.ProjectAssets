@@ -1,5 +1,5 @@
-namespace CodeWithSaar.ProjectAssets.Core;
+namespace CodeWithSaar.ProjectAssets.CLI;
 public interface ILocateAssetJson
 {
-    string LocateFile(string assetFilePathHint);
+    bool TryLocateFile(string assetFilePathHint, out string locatedFilePath);
 }

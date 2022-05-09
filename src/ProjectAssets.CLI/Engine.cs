@@ -1,4 +1,3 @@
-using CodeWithSaar.ProjectAssets.Core;
 using CodeWithSaar.ProjectAssets.Models;
 using Microsoft.Extensions.Logging;
 
@@ -7,14 +6,14 @@ namespace CodeWithSaar.ProjectAssets.CLI;
 public class Engine
 {
     private readonly CmdOptions _cmdOptions;
-    private readonly ILocateAssetJson _assetJsonLocator;
+    private readonly ILocateAssetJson _assetFileProvider;
     private readonly IDeserializeAssets _assetsDeserializer;
     private readonly IGenerateVisual<MermaidGenOptions> _mermaidGen;
     private readonly ILogger<Engine> _logger;
 
     public Engine(
         CmdOptions cmdOptions,
-        ILocateAssetJson assetJsonLocator,
+        IAssetFileProvider assetFileProvider,
         IDeserializeAssets assetsDeserializer,
         IGenerateVisual<MermaidGenOptions> mermaidGen,
         ILogger<Engine> logger)
@@ -22,14 +21,18 @@ public class Engine
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         _cmdOptions = cmdOptions ?? throw new ArgumentNullException(nameof(cmdOptions));
-        _assetJsonLocator = assetJsonLocator ?? throw new ArgumentNullException(nameof(assetJsonLocator));
+        _assetFileProvider = assetFileProvider ?? throw new ArgumentNullException(nameof(assetFileProvider));
         _assetsDeserializer = assetsDeserializer ?? throw new ArgumentNullException(nameof(assetsDeserializer));
         _mermaidGen = mermaidGen ?? throw new ArgumentNullException(nameof(mermaidGen));
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        string assetJsonFilePath = _assetJsonLocator.LocateFile(_cmdOptions.AssetFilePath);
+        if(!_assetFileProvider.TryLocateFile(_cmdOptions.AssetFilePath, out string assetJsonFilePath))
+        {
+            throw new InvalidOperationException($"Can't locate asset file. Location hint: {_cmdOptions.AssetFilePath}");
+        }
+
         Assets? assets = await _assetsDeserializer.DeserializeAsync(assetJsonFilePath, cancellationToken);
         if (assets is null)
         {
