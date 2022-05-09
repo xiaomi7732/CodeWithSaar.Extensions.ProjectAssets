@@ -28,7 +28,7 @@ public class Engine
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        if(!_assetFileProvider.TryLocateFile(_cmdOptions.AssetFilePath, out string assetJsonFilePath))
+        if (!_assetFileProvider.TryLocateFile(_cmdOptions.AssetFilePath, out string assetJsonFilePath))
         {
             throw new InvalidOperationException($"Can't locate asset file. Location hint: {_cmdOptions.AssetFilePath}");
         }
@@ -45,7 +45,13 @@ public class Engine
             SearchDirection = _cmdOptions.SearchDirection,
         };
 
-        using (Stream outputStream = File.Open(_cmdOptions.OutputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+        string outputFilePath = _cmdOptions.OutputFilePath;
+        string? directory = Path.GetDirectoryName(outputFilePath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+        using (Stream outputStream = File.Open(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
         {
             await _mermaidGen.GenerateAsync(outputStream, assets, options, cancellationToken);
         }
