@@ -29,6 +29,8 @@ This generates the package reference mermaid chart at `data/output.mmd`.
     * If the mermaid file becomes too big to render, use the configuration tab to increase the default settings:
       ![A screenshot shows where to set the configurations](./images/MermaidConfiguration.png).
 
+  * There are VSCode extensions to render `*.mmd` files in the editor too.
+
 You could choose to use the artifacts in [releases](https://github.com/xiaomi7732/CodeWithSaar.Extensions.ProjectAssets/releases).
 
 ## Trim down to specific package
