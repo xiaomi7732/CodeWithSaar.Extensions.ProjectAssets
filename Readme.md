@@ -8,7 +8,7 @@ This is an initiative to visualize NuGet package dependencies in a given project
 
 * Clone the repo
 
-* Got to CLI folder
+* Go to CLI folder
 
 ```shell
 cd src/ProjectAssets.CLI
@@ -99,4 +99,4 @@ c:\src\project\obj\output.mmd
 This project is inspired and helped by:
 
 * [@JacobBovee](https://github.com/JacobBovee)
-* 
+* [@sbosell](https://github.com/sbosell)
