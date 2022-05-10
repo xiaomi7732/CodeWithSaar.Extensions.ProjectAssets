@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+    - uses: actions/checkout@v3
+
+    - name: Verify commit exists in origin/main
+      run: |
+        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+        git branch --remote --contains | grep origin/main
+
+    - name: Set VERSION variable from tag
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.x
+
+    - name: Restore dependencies
+      run: dotnet restore src/ProjectAssets.CLI
+
+    - name: Build
+      run: dotnet build -c Release src/ProjectAssets.CLI --no-restore /p:Version=${VERSION}
+
+    - name: Test
+      run: dotnet test tests/ProjectAssets.Core.Tests --verbosity normal
+
+    - name: Publish
+      run: dotnet publish -c Release src/ProjectAssets.CLI --no-build -o out /p:Version=${VERSION}
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ast-cli
+        path: out
