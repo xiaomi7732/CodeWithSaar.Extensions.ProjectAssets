@@ -43,6 +43,6 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: ast-cli.${VERSION}
+        name: ast-cli.${{github.ref_name}}
         path: out
         retention-days: 1
