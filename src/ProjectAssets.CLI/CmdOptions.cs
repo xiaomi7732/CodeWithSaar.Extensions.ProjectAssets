@@ -8,7 +8,7 @@ public class CmdOptions
     public string AssetFilePath { get; set; } = "./data";
 
     [Option('o', "output", Required = false, HelpText = "Output file path", Default = "./data/output.mmd")]
-    public string OutputFilePath { get; set; } = "output.mmd";
+    public string OutputFilePath { get; set; } = "./data/output.mmd";
 
     [Option('t', "target-package", Required = false, HelpText = "Only output target package", Default = null)]
     public string? TargetPackage { get; set; }

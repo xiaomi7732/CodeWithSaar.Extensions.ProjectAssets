@@ -9,6 +9,7 @@ public class Engine
     private readonly ILocateAssetJson _assetFileProvider;
     private readonly IDeserializeAssets _assetsDeserializer;
     private readonly IGenerateVisual<MermaidGenOptions> _mermaidGen;
+    private readonly IDirectoryExistCheck _directoryExistCheck;
     private readonly ILogger<Engine> _logger;
 
     public Engine(
@@ -16,6 +17,7 @@ public class Engine
         IAssetFileProvider assetFileProvider,
         IDeserializeAssets assetsDeserializer,
         IGenerateVisual<MermaidGenOptions> mermaidGen,
+        IDirectoryExistCheck directoryExistCheck,
         ILogger<Engine> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -24,6 +26,7 @@ public class Engine
         _assetFileProvider = assetFileProvider ?? throw new ArgumentNullException(nameof(assetFileProvider));
         _assetsDeserializer = assetsDeserializer ?? throw new ArgumentNullException(nameof(assetsDeserializer));
         _mermaidGen = mermaidGen ?? throw new ArgumentNullException(nameof(mermaidGen));
+        _directoryExistCheck = directoryExistCheck ?? throw new ArgumentNullException(nameof(directoryExistCheck));
     }
 
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -56,5 +59,14 @@ public class Engine
             await _mermaidGen.GenerateAsync(outputStream, assets, options, cancellationToken);
         }
         _logger.LogInformation("Finish generating mermaid file: {filePath}", Path.GetFullPath(_cmdOptions.OutputFilePath));
+
+        // For running in container
+        string absoluteOutput = Path.GetFullPath(outputFilePath);
+        _logger.LogDebug("Is already under data? {is}. Output file path: {output}", !absoluteOutput.StartsWith("/data/", StringComparison.Ordinal), absoluteOutput);
+        if (_directoryExistCheck.Check("/data") && !absoluteOutput.StartsWith("/data/", StringComparison.Ordinal))
+        {
+            string outputPathInContainer = Path.Combine("/data", _cmdOptions.OutputFilePath);
+            File.Copy(outputFilePath, outputPathInContainer);
+        }
     }
 }
