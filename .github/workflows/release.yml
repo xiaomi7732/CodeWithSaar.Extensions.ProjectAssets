@@ -42,7 +42,15 @@ jobs:
       run: dotnet publish -c Release src/ProjectAssets.CLI -r win-x64 --self-contained -p:PublishSingleFile=true -o out/win-x64 /p:Version=${VERSION}
 
     - uses: actions/upload-artifact@v3
+      name: Upload Linux Artifacts
       with:
-        name: ast-cli.${{github.ref_name}}
-        path: out
+        name: ast-cli.linux-x64.${{github.ref_name}}
+        path: out/linux-x64
+        retention-days: 1
+
+    - uses: actions/upload-artifact@v3
+      name: Upload Windows Artifacts
+      with:
+        name: ast-cli.win-x64.${{github.ref_name}}
+        path: out/win-x64
         retention-days: 1
