@@ -24,9 +24,10 @@ This generates the package reference mermaid chart at `data/output.mmd`.
 
 * Visual
 
-Copy & paste the text in `data/output.mmd` to any mermaid visualizer. For example: <https://mermaid.live>
-  * If the mermaid file becomes too big to render, use the configuration tab to increase the default settings:
-    ![A screenshot shows where to set the configurations](./images/MermaidConfiguration.png).
+  * Copy & paste the text in `data/output.mmd` to any mermaid visualizer. For example: <https://mermaid.live>
+  
+    * If the mermaid file becomes too big to render, use the configuration tab to increase the default settings:
+      ![A screenshot shows where to set the configurations](./images/MermaidConfiguration.png).
 
 ## Trim down to specific package
 
@@ -54,7 +55,7 @@ net6.0 --> 📦Microsoft.Extensions.Logging.Console/6.0.0
 📦Microsoft.Extensions.Configuration/6.0.0 --> 📦Microsoft.Extensions.Primitives/6.0.0
 ```
 
-## Only upstream or downstream of a given package
+## Further: upstream or downstream of a given package
 
 ```shell
 dotnet run -- -i obj -t "Microsoft.Extensions.Configuration" -d Up
@@ -92,6 +93,22 @@ This will map `c:\src\project\obj` into `/data` in the container. And you will f
 
 ```shell
 c:\src\project\obj\output.mmd
+```
+
+## More
+
+For more use, invoke the cli with `-h`.
+
+When running with source code, you need `--` as a separator for dotnet cli:
+
+```shell
+dotnet -- -h
+```
+
+For docker image:
+
+```shell
+docker run -it saars/ast-cli -h
 ```
 
 ## Credit
