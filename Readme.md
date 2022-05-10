@@ -98,5 +98,5 @@ c:\src\project\obj\output.mmd
 
 This project is inspired and helped by:
 
-* @JacobBovee
+* [@JacobBovee](https://github.com/JacobBovee)
 * 
