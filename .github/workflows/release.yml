@@ -35,10 +35,14 @@ jobs:
     - name: Test
       run: dotnet test tests/ProjectAssets.Core.Tests --verbosity normal
 
-    - name: Publish
-      run: dotnet publish -c Release src/ProjectAssets.CLI --no-build -o out /p:Version=${VERSION}
+    - name: Publish to linux x64
+      run: dotnet publish -c Release src/ProjectAssets.CLI -r linux-x64 --self-contained -p:PublishSingleFile=true -o out/linux-x64 /p:Version=${VERSION}
+
+    - name: Publish to win x64
+      run: dotnet publish -c Release src/ProjectAssets.CLI -r win-x64 --self-contained -p:PublishSingleFile=true -o out/win-x64 /p:Version=${VERSION}
 
     - uses: actions/upload-artifact@v3
       with:
-        name: ast-cli
+        name: ast-cli.${VERSION}
         path: out
+        retention-days: 1
